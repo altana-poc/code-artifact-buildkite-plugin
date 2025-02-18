@@ -1,0 +1,32 @@
+name: CODEARTIFACT
+description: Login code artifact
+author: tbd
+requirements:
+  - curl
+  - bash
+  - aws
+configuration:
+  properties:
+    account-ids:
+      type:
+        - string
+        - array
+      minItems: 1
+    region:
+      type: string
+    username:
+      type: string
+    path:
+      type: string
+    domain:
+      type: string
+    assume-role:
+      type: object
+      properties:
+        role-arn:
+          type: string
+        duration-seconds:
+          type: number
+          default: 3600
+    profile:
+      type: string
