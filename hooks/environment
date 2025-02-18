@@ -18,16 +18,6 @@ function plugin_read_list() {
   fi
 }
 
-function get_vars_prefix() {
-    local prefix="$BUILDKITE_PLUGIN_CODE_ARTIFACT_PREFIX"
-
-    if [[ -n "prefix" ]]; then
-      echo "${prefix}_"
-    else
-      echo ""
-    fi
-}
-
 function login(){
   local id="$1"
   local region="$BUILDKITE_PLUGIN_CODE_ARTIFACT_REGION"
@@ -50,7 +40,6 @@ function login_code_artifact(){
   do
     login "$id"
   done;
-  echo "Hello world from buildkite hook plugin"
 }
 
 login_code_artifact
