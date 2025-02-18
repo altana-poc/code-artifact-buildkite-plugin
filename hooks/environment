@@ -28,25 +28,19 @@ function get_vars_prefix() {
     fi
 }
 
-function install_aws(){
-  curl https://s3.amazonaws.com/aws-cli/awscli-bundle.zip -o awscli-bundle.zip 2>/dev/null
-  unzip -qq awscli-bundle.zip
-  ./awscli-bundle/install -b ~/bin/aws
-}
-
 function login(){
   local id="$1"
   local region="$BUILDKITE_PLUGIN_CODE_ARTIFACT_REGION"
   local domain="$BUILDKITE_PLUGIN_CODE_ARTIFACT_DOMAIN"
-  local path="$BUILDKITE_PLUGIN_CODE_ARTIFACT_PATH"
+  local repository="$BUILDKITE_PLUGIN_CODE_ARTIFACT_REPOSITORY"
   local username="$BUILDKITE_PLUGIN_CODE_ARTIFACT_USERNAME"
 
-  export TWINE_REPOSITORY_URL=$(aws codeartifact get-repository-endpoint --region "${region}" --domain="${domain}" --domain-owner="${id}" --repository="${domain}" --format pypi --query repositoryEndpoint --output text)
+  export TWINE_USERNAME=aws
   export TWINE_PASSWORD=$(aws codeartifact get-authorization-token --region "${region}" --domain="${domain}" --domain-owner="${id}" --query authorizationToken --output text)
-  export TWINE_USERNAME="${username}"
-  export PIP_INDEX_URL="https://aws:${TWINE_PASSWORD}@${domain}-${id}.d.codeartifact.${region}.amazonaws.com/pypi/${domain}/${path}"
+  export TWINE_REPOSITORY_URL=$(aws codeartifact get-repository-endpoint --region "${region}" --domain="${domain}" --domain-owner="${id}" --repository="${repository}" --format pypi --query repositoryEndpoint --output text)
+  export PIP_INDEX_URL="https://${TWINE_USERNAME}:${TWINE_PASSWORD}@${domain}-${id}.d.codeartifact.${region}.amazonaws.com/pypi/${domain}/simple"
 
-  echo "{\"key\":\"${TWINE_REPOSITORY_URL}\",\"key\":\"${TWINE_PASSWORD}\",\"key\":\"${TWINE_USERNAME}\",\"key\":\"${PIP_INDEX_URL}\"}" | buildkite-agent redactor add --format json
+  echo "$TWINE_PASSWORD" | buildkite-agent redactor add
 }
 
 function login_code_artifact(){
