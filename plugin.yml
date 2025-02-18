@@ -11,8 +11,6 @@ configuration:
         - string
     region:
       type: string
-    username:
-      type: string
     domain:
       type: string
     repository:
