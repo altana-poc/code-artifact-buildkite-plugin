@@ -2,7 +2,6 @@ name: CODEARTIFACT
 description: Login code artifact
 author: tbd
 requirements:
-  - curl
   - bash
   - aws
 configuration:
@@ -16,9 +15,9 @@ configuration:
       type: string
     username:
       type: string
-    path:
-      type: string
     domain:
+      type: string
+    repository:
       type: string
     assume-role:
       type: object
