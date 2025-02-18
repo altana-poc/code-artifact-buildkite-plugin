@@ -1,45 +1,18 @@
 #!/bin/bash
 set -euo pipefail
 
-function plugin_read_list() {
-  local prefix="BUILDKITE_PLUGIN_CODE_ARTIFACT_$1"
-  local parameter="${prefix}_0"
+# Logs in to AWS CodeArtifact and sets up authentication for Twine and Pip
+function login_code_artifact() {
+  local account_id="${BUILDKITE_PLUGIN_CODE_ARTIFACT_ACCOUNT_ID}"
+  local region="${BUILDKITE_PLUGIN_CODE_ARTIFACT_REGION}"
+  local domain="${BUILDKITE_PLUGIN_CODE_ARTIFACT_DOMAIN}"
+  local repository="${BUILDKITE_PLUGIN_CODE_ARTIFACT_REPOSITORY}"
 
-  if [[ -n "${!parameter:-}" ]]; then
-    local i=0
-    local parameter="${prefix}_${i}"
-    while [[ -n "${!parameter:-}" ]]; do
-      echo "${!parameter}"
-      i=$((i+1))
-      parameter="${prefix}_${i}"
-    done
-  elif [[ -n "${!prefix:-}" ]]; then
-    echo "${!prefix}"
-  fi
-}
-
-function login(){
-  local id="$1"
-  local region="$BUILDKITE_PLUGIN_CODE_ARTIFACT_REGION"
-  local domain="$BUILDKITE_PLUGIN_CODE_ARTIFACT_DOMAIN"
-  local repository="$BUILDKITE_PLUGIN_CODE_ARTIFACT_REPOSITORY"
-  local username="$BUILDKITE_PLUGIN_CODE_ARTIFACT_USERNAME"
-
-  export TWINE_USERNAME=aws
-  export TWINE_PASSWORD=$(aws codeartifact get-authorization-token --region "${region}" --domain="${domain}" --domain-owner="${id}" --query authorizationToken --output text)
-  export TWINE_REPOSITORY_URL=$(aws codeartifact get-repository-endpoint --region "${region}" --domain="${domain}" --domain-owner="${id}" --repository="${repository}" --format pypi --query repositoryEndpoint --output text)
-  export PIP_INDEX_URL="https://${TWINE_USERNAME}:${TWINE_PASSWORD}@${domain}-${id}.d.codeartifact.${region}.amazonaws.com/pypi/${domain}/simple"
-
+  export TWINE_USERNAME="aws"
+  export TWINE_PASSWORD=$(aws codeartifact get-authorization-token --region "${region}" --domain="${domain}" --domain-owner="${account_id}" --query authorizationToken --output text)
   echo "$TWINE_PASSWORD" | buildkite-agent redactor add
-}
-
-function login_code_artifact(){
-  registry_ids=()
-  while IFS='' read -r line; do registry_ids+=("$line"); done < <(plugin_read_list ACCOUNT_IDS | tr "," "\n")
-  for id in "${registry_ids[@]}"
-  do
-    login "$id"
-  done;
+  export TWINE_REPOSITORY_URL=$(aws codeartifact get-repository-endpoint --region "${region}" --domain="${domain}" --domain-owner="${account_id}" --repository="${repository}" --format pypi --query repositoryEndpoint --output text)
+  export PIP_INDEX_URL="https://${TWINE_USERNAME}:${TWINE_PASSWORD}@${domain}-${account_id}.d.codeartifact.${region}.amazonaws.com/pypi/${domain}/simple"
 }
 
 login_code_artifact

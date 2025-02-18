@@ -6,11 +6,9 @@ requirements:
   - aws
 configuration:
   properties:
-    account-ids:
+    account-id:
       type:
         - string
-        - array
-      minItems: 1
     region:
       type: string
     username:
@@ -18,14 +16,4 @@ configuration:
     domain:
       type: string
     repository:
-      type: string
-    assume-role:
-      type: object
-      properties:
-        role-arn:
-          type: string
-        duration-seconds:
-          type: number
-          default: 3600
-    profile:
       type: string
